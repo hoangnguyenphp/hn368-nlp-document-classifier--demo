@@ -41,17 +41,22 @@ The model is based on **XLM-RoBERTa** and supports multilingual text classificat
 # ==========================================================
 
 st.info(
-"""
+f"""
 ### ⚠ Important Notice
 
-This demo is hosted on **Streamlit Community Cloud (Free Tier)**.
+This application is powered by an **XLM-RoBERTa** model (~**1.1 GB**) and is hosted on **Streamlit Community Cloud (Free Tier)**.
 
-The AI model is approximately **1.1 GB**, therefore:
+**Startup Time**
 
-- The **first request** after the application wakes up may take **2–3 minutes**.
-- During model initialization, Streamlit may temporarily display an error page.
-- If that happens, please **refresh the page or come back after 2–3 minutes**.
-- Once the model has been loaded, subsequent predictions are much faster.
+- The first request after the application wakes up may take **2–3 minutes** while the model is downloaded and loaded into memory.
+- During this initialization, Streamlit may temporarily display an error page.
+- If this happens, simply **refresh the page or try again in a few minutes**.
+
+**Input Limit**
+
+- Maximum input length: **{ModelConfig.MAX_LENGTH} tokens**.
+- Longer texts will be **automatically truncated** before prediction.
+- For the best results, use **a sentence, one paragraph, or a short document**.
 
 Thank you for your patience!
 """
