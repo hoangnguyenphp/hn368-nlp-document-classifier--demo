@@ -4,20 +4,12 @@ from config import ModelConfig
 from src.inference import Inference
 
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-
 st.set_page_config(
     page_title="Multilingual Document Classifier",
     page_icon="📄",
     layout="centered"
 )
 
-
-# ============================================================
-# LOAD MODEL
-# ============================================================
 
 @st.cache_resource
 def load_predictor():
@@ -27,178 +19,143 @@ def load_predictor():
     )
 
 
-predictor = load_predictor()
-
-
-# ============================================================
-# HEADER
-# ============================================================
+# ==========================================================
+# Header
+# ==========================================================
 
 st.title("📄 Multilingual Document Classifier")
 
 st.markdown("""
-This demo uses a **fine-tuned XLM-RoBERTa Transformer model**
-to classify **English** and **Vietnamese** documents.
-
-### Supported Categories
+Classify **Vietnamese** and **English** documents into:
 
 - 💰 Economy
 - 🏛 Politics
 - ⚽ Sports
 
-The model supports **multi-label classification**, meaning
-a document can belong to multiple categories simultaneously.
+The model is based on **XLM-RoBERTa** and supports multilingual text classification.
 """)
 
 
-# ============================================================
-# SIDEBAR
-# ============================================================
+# ==========================================================
+# Important Notice
+# ==========================================================
 
-with st.sidebar:
+st.info(
+"""
+### ⚠ Important Notice
 
-    st.header("About")
+This demo is hosted on **Streamlit Community Cloud (Free Tier)**.
 
-    st.markdown("""
-**Model**
+The AI model is approximately **1.1 GB**, therefore:
 
-XLM-RoBERTa Base
+- The **first request** after the application wakes up may take **2–3 minutes**.
+- During model initialization, Streamlit may temporarily display an error page.
+- If that happens, please **refresh the page or come back after 2–3 minutes**.
+- Once the model has been loaded, subsequent predictions are much faster.
 
-**Task**
-
-Multilingual Text Classification
-
-**Languages**
-
-- 🇻🇳 Vietnamese
-- 🇺🇸 English
-
-**Framework**
-
-- PyTorch
-- Hugging Face Transformers
-
-**Deployment**
-
-- Streamlit Community Cloud
-
----
-Built by **Hoang Nguyen**
-""")
-
-    st.divider()
-
-    st.subheader("Example Inputs")
-
-    example = st.selectbox(
-
-        "Choose an example",
-
-        [
-            "Chính phủ công bố gói hỗ trợ kinh tế 100000 nghìn tỷ đồng",
-
-            "Quốc hội thông qua luật mới.",
-
-            "Manchester United won the championship.",
-
-            "Chính phủ công bố gói hỗ trợ kinh tế mới.",
-
-            "Hôm nay trời đẹp quá."
-
-        ]
-
-    )
-
-    if st.button("Use Example"):
-
-        st.session_state["example_text"] = example
-
-
-# ============================================================
-# INPUT
-# ============================================================
-
-default_text = st.session_state.get(
-    "example_text",
-    ""
-)
-
-text = st.text_area(
-
-    "Input Document",
-
-    value=default_text,
-
-    height=200,
-
-    placeholder="""
-Example:
-
-Chính phủ công bố gói hỗ trợ kinh tế 100000 nghìn tỷ đồng.
-
-or
-
-Manchester United won the Premier League title.
-
+Thank you for your patience!
 """
 )
 
 
-# ============================================================
-# PREDICT
-# ============================================================
+# ==========================================================
+# Example
+# ==========================================================
+
+with st.expander("📝 Example Inputs", expanded=False):
+
+    st.markdown("""
+**Economy**
+
+- Ngân hàng Nhà nước tăng lãi suất.
+- Vietnam GDP reached 7.2%.
+
+**Politics**
+
+- Quốc hội thông qua luật mới.
+- The president signed a new bill.
+
+**Sports**
+
+- Manchester United thắng 3-1.
+- Lionel Messi scored two goals.
+""")
+
+
+st.divider()
+
+
+# ==========================================================
+# Load model
+# ==========================================================
+
+predictor = load_predictor()
+
+
+# ==========================================================
+# Input
+# ==========================================================
+
+text = st.text_area(
+    "Input Text",
+    placeholder="Enter Vietnamese or English text here...",
+    height=180
+)
+
+
+# ==========================================================
+# Prediction
+# ==========================================================
 
 if st.button(
-    "🚀 Predict",
+    "Predict",
     type="primary",
     use_container_width=True
 ):
 
     if text.strip() == "":
 
-        st.warning("Please enter a document.")
+        st.warning(
+            "Please enter some text."
+        )
 
     else:
 
-        with st.spinner("Running inference..."):
+        with st.spinner(
+            "Running inference..."
+        ):
 
             result = predictor.predict(text)
-
-        st.divider()
-
-        st.subheader("Prediction Result")
 
         if result["is_unknown"]:
 
             st.warning(
-                "⚠️ This document does not belong to any known category."
+                "Unknown document"
             )
 
         else:
 
+            st.success(
+                "Prediction Result"
+            )
+
             for category, confidence in zip(
-
                 result["categories"],
-
                 result["confidences"]
-
             ):
 
-                st.success(category)
-
-                st.progress(float(confidence))
-
-                st.write(
-                    f"Confidence: **{confidence:.2%}**"
+                st.metric(
+                    category,
+                    f"{confidence:.2%}"
                 )
 
         st.divider()
 
-        st.subheader("Confidence Scores")
+        st.subheader(
+            "Confidence Scores"
+        )
 
-        raw_scores = result["raw_scores"]
-
-        for label, score in raw_scores.items():
+        for label, score in result["raw_scores"].items():
 
             st.write(f"**{label}**")
 
